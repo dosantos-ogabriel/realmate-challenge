@@ -17,13 +17,13 @@ class WebhookApiView(views.APIView):
 
         data = serializer.validated_data
         actions = {
-            "NEW_CONVERSATION": self.create_conversation,
-            "NEW_MESSAGE": self.create_message,
-            "CLOSE_CONVERSATION": self.close_conversation,
+            "NEW_CONVERSATION": self._create_conversation,
+            "NEW_MESSAGE": self._create_message,
+            "CLOSE_CONVERSATION": self._close_conversation,
         }
         return actions[data["type"]](data)
 
-    def create_conversation(self, data):
+    def _create_conversation(self, data):
         try:
             Conversation.objects.create(created_at=data["timestamp"], **data["data"])
         except IntegrityError:
@@ -35,7 +35,7 @@ class WebhookApiView(views.APIView):
             {"message": "Conversation created"}, status=status.HTTP_201_CREATED
         )
 
-    def close_conversation(self, data):
+    def _close_conversation(self, data):
         conversation_id = data["data"]["id"]
         conversation = Conversation.objects.get(id=conversation_id)
         if conversation.state == ConversationState.CLOSED:
@@ -49,7 +49,7 @@ class WebhookApiView(views.APIView):
         conversation.save()
         return Response(status=status.HTTP_200_OK)
 
-    def create_message(self, data):
+    def _create_message(self, data):
         try:
             conversation = Conversation.objects.get(id=data["data"]["conversation_id"])
         except Conversation.DoesNotExist:
