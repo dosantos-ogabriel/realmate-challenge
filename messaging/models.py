@@ -18,7 +18,9 @@ class Conversation(models.Model):
 
 class Message(models.Model):
     id = models.UUIDField(primary_key=True)
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="messages"
+    )
     sent_at = models.DateTimeField()
     content = models.TextField()
     direction = models.CharField(max_length=10, choices=MessageDirection.choices)

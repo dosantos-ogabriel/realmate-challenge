@@ -1,11 +1,11 @@
-from rest_framework import views, status
+from rest_framework import views, viewsets, status
 from rest_framework.response import Response
 
 from django.db.utils import IntegrityError
 
 from .models import Conversation, Message
 from .choices import ConversationState
-from .serializers import WebhookSerializer
+from .serializers import WebhookSerializer, ConversationSerializer
 
 
 class WebhookApiView(views.APIView):
@@ -29,7 +29,7 @@ class WebhookApiView(views.APIView):
         except IntegrityError:
             return Response(
                 status=status.HTTP_409_CONFLICT,
-                data={"message": "Conversation with this id already exists"},
+                data={"detail": "Conversation with this id already exists."},
             )
         return Response(
             {"message": "Conversation created"}, status=status.HTTP_201_CREATED
@@ -41,7 +41,7 @@ class WebhookApiView(views.APIView):
         if conversation.state == ConversationState.CLOSED:
             return Response(
                 status=status.HTTP_409_CONFLICT,
-                data={"message": "Conversation is already closed"},
+                data={"detail": "Conversation is already closed."},
             )
 
         conversation.state = ConversationState.CLOSED
@@ -55,13 +55,13 @@ class WebhookApiView(views.APIView):
         except Conversation.DoesNotExist:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"message": "Conversation does not exist"},
+                data={"detail": "Conversation does not exist."},
             )
 
         if conversation.state == ConversationState.CLOSED:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"message": "Conversation is closed"},
+                data={"detail": "Conversation is closed."},
             )
 
         try:
@@ -69,6 +69,11 @@ class WebhookApiView(views.APIView):
         except IntegrityError:
             return Response(
                 status=status.HTTP_409_CONFLICT,
-                data={"message": "Message with this id already exists"},
+                data={"detail": "Message with this id already exists."},
             )
         return Response({"message": "Message sent"}, status=status.HTTP_201_CREATED)
+
+
+class ConversationViewSet(viewsets.ModelViewSet):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer

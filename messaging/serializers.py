@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Conversation
-from .choices import MessageDirection, ConversationState
+from .models import Conversation, Message
+from .choices import MessageDirection
 
 
 class WebhookSerializer(serializers.Serializer):
@@ -41,3 +41,17 @@ class NewMessageSerializer(serializers.Serializer):
     conversation_id = serializers.UUIDField()
     content = serializers.CharField()
     direction = serializers.ChoiceField(choices=MessageDirection.choices)
+
+
+class ConversationMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = "__all__"
+
+
+class ConversationSerializer(serializers.ModelSerializer):
+    messages = ConversationMessageSerializer(many=True)
+
+    class Meta:
+        model = Conversation
+        fields = ("state", "messages")
